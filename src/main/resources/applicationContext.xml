@@ -1,43 +1,50 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 
-<beans xmlns="https://www.springframework.org/schema/beans"
+<beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:context="https://www.springframework.org/schema/context"
-       xmlns:mvc="https://www.springframework.org/schema/mvc"
-       xmlns:tx="https://www.springframework.org/schema/tx"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
        xsi:schemaLocation="
-           https://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans
            https://www.springframework.org/schema/beans/spring-beans.xsd
-           https://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context
            https://www.springframework.org/schema/context/spring-context.xsd
-           https://www.springframework.org/schema/mvc
+           http://www.springframework.org/schema/mvc
            https://www.springframework.org/schema/mvc/spring-mvc.xsd
-           https://www.springframework.org/schema/tx
-           https://www.springframework.org/schema/tx/spring-tx.xsd">
+           http://www.springframework.org/schema/tx
+           https://www.springframework.org/schema/tx/spring-tx.xsd
+           http://www.springframework.org/schema/data/jpa
+           https://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 
-    <context:property-placeholder location="classpath:database.properties"/>
+    <!-- Lecture des paramètres de connexion -->
+    <context:property-placeholder
+            location="classpath:database.properties"/>
 
+    <!-- Détection des composants Spring -->
     <context:component-scan base-package="ma.wegrow"/>
 
+    <!-- Activation de Spring MVC -->
     <mvc:annotation-driven/>
 
+    <!-- Connexion à PostgreSQL -->
     <bean id="dataSource"
           class="org.springframework.jdbc.datasource.DriverManagerDataSource">
         <property name="driverClassName" value="${db.driver}"/>
         <property name="url" value="${db.url}"/>
         <property name="username" value="${db.username}"/>
-        <property name="password" value="#{systemEnvironment['WEGROW_DB_PASSWORD']}"/>
-        <property name="jpaProperties">
-            <props>
-                <prop key="hibernante.dialect">org.hibernante.dialect.PostgeSQLDialect</prop>
-                <prop key="hibernante.hbm2ddl.auto">update</prop>
-            </props>
-        </property>
+        <property name="password"
+                  value="#{systemEnvironment['WEGROW_DB_PASSWORD']}"/>
     </bean>
 
+    <!-- Configuration JPA avec Hibernate -->
     <bean id="entityManagerFactory"
           class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+
         <property name="dataSource" ref="dataSource"/>
+
         <property name="packagesToScan" value="ma.wegrow.model"/>
 
         <property name="jpaVendorAdapter">
@@ -49,7 +56,9 @@
 
         <property name="jpaProperties">
             <props>
-                <prop key="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</prop>
+                <prop key="hibernate.dialect">
+                    org.hibernate.dialect.PostgreSQLDialect
+                </prop>
                 <prop key="hibernate.hbm2ddl.auto">update</prop>
             </props>
         </property>
@@ -58,9 +67,16 @@
     <!-- Gestion des transactions -->
     <bean id="transactionManager"
           class="org.springframework.orm.jpa.JpaTransactionManager">
-        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+        <property name="entityManagerFactory"
+                  ref="entityManagerFactory"/>
     </bean>
 
-    <tx:annotation-driven transaction-manager="transactionManager"/>
+    <!-- Activation des transactions avec @Transactional -->
+    <tx:annotation-driven
+            transaction-manager="transactionManager"/>
+
+    <!-- Détection des repositories Spring Data JPA -->
+    <jpa:repositories
+            base-package="ma.wegrow.repository"/>
 
 </beans>
