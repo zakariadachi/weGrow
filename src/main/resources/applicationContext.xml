@@ -4,23 +4,63 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="https://www.springframework.org/schema/context"
        xmlns:mvc="https://www.springframework.org/schema/mvc"
+       xmlns:tx="https://www.springframework.org/schema/tx"
        xsi:schemaLocation="
            https://www.springframework.org/schema/beans
            https://www.springframework.org/schema/beans/spring-beans.xsd
            https://www.springframework.org/schema/context
            https://www.springframework.org/schema/context/spring-context.xsd
            https://www.springframework.org/schema/mvc
-           https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+           https://www.springframework.org/schema/mvc/spring-mvc.xsd
+           https://www.springframework.org/schema/tx
+           https://www.springframework.org/schema/tx/spring-tx.xsd">
+
     <context:property-placeholder location="classpath:database.properties"/>
+
     <context:component-scan base-package="ma.wegrow"/>
 
     <mvc:annotation-driven/>
 
     <bean id="dataSource"
           class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-    <property name="driverClassName" value="${db.driver}"/>
-    <property name="url" value="${db.url"/>
-    <property name="username" value="${db.username}"/>
-    <property name="password" value="#{systemEnvironment['WEGROW_DB_PASSWORD']}"/>
+        <property name="driverClassName" value="${db.driver}"/>
+        <property name="url" value="${db.url}"/>
+        <property name="username" value="${db.username}"/>
+        <property name="password" value="#{systemEnvironment['WEGROW_DB_PASSWORD']}"/>
+        <property name="jpaProperties">
+            <props>
+                <prop key="hibernante.dialect">org.hibernante.dialect.PostgeSQLDialect</prop>
+                <prop key="hibernante.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="entityManagerFactory"
+          class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="packagesToScan" value="ma.wegrow.model"/>
+
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+                <property name="showSql" value="true"/>
+                <property name="generateDdl" value="true"/>
+            </bean>
+        </property>
+
+        <property name="jpaProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- Gestion des transactions -->
+    <bean id="transactionManager"
+          class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="transactionManager"/>
 
 </beans>
